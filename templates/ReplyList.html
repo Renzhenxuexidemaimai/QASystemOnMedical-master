@@ -1,0 +1,199 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>智能医药系统</title>
+    <script type="text/javascript" src="static/script/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="static/script/index.js"></script>
+    <script type="text/javascript" src="static/script/jquery.confirm.js"></script>
+    <script type="text/javascript" src="static/script/jquery.nicescroll.min.js"></script>
+    <script src="static/script/jquery-scrolltofixed.js"></script>
+    <link href="static/css/reset.css" rel="stylesheet" type="text/css">
+    <link href="static/css/main.css" rel="stylesheet" type="text/css">
+    <link href="static/css/subpage.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+	<script src="https://cdn.staticfile.org/jquery/2.1.1/jquery.min.js"></script>
+	<script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(
+          function () {
+              $("#col-r").niceScroll({
+                  cursorwidth: "10px",
+                  horizrailenabled: false
+              });
+          }
+      );
+    </script>
+    
+    
+    
+    
+    
+</head>
+
+
+
+
+
+
+<body>
+    <form method="post" action="ReplyList.aspx?Type=0001" id="form1">
+        <div id="header">
+            
+
+
+            <div class="main-nav">
+                <ul>
+                    <li class="current"><a href="index">首页</a></li>
+                    <li class="nav-reply"><a href="Reply">回复汇总</a></li>
+                </ul>
+            </div>
+
+
+
+        </div>
+
+        <div>
+            
+
+        <div class="header-banner-top subpage">
+            <div class="header-banner-content">
+
+            </div>
+        </div>
+        <div class="wrapper">
+
+            <div class="qa-list-l" style="z-index: auto; position: static; top: auto;">
+
+            </div>
+            <div style="display: none; width: 250px; height: 265px; float: left;"></div>
+
+             <div class="qa-list-r">
+                <div class="wrapper">
+
+                      <ul class="new-reply-list"><!--显示三条最新回复-->
+                          
+
+                        {% for record in records %}
+                            <li>
+                                 <a class="slider" href="ReplyDetail_{{record['_id']}}"><h1><span>问：</span> {{record['question']}}</h1></a>
+                                    <div class="answer-content">
+                                        {{record['answer'][:40]}}...
+                                    </div>
+                             </li>
+                        {% endfor %}
+                              
+                      </ul>
+
+                      <div class="pages"> 
+
+
+                            
+                            <!-- AspNetPager V7.0.2 for VS2005 & VS2008  Copyright:2003-2007 Webdiyer (www.webdiyer.com) -->
+                            <div id="ContentPlaceHolder1_AspNetPager1">
+                                
+	                        <!-- AspNetPager V7.0.2 for VS2005 & VS2008  Copyright:2003-2007 Webdiyer (www.webdiyer.com) -->
+	                        <div id="WebContent_ReplyTypeList_PagerList_AspNetPager1">
+                                <ul class="pagination">
+                                    {% if pagination['has_prevent'] %}
+                                        <li><a href="ReplyList_{{category}}_{{pagination['cur_page']-1}}">&laquo;</a></li>
+                                    {% endif %}
+                                    {% for i in range(1, pagination.pages+1) %}
+                                        <li class="{% if i == pagination['cur_page'] %}active{% endif %}"><a href="ReplyList_{{category}}_{{i}}">{{i}}</a></li>
+                                    {% endfor %}
+                                    {% if pagination['has_next'] %}
+                                        <li><a href="ReplyList_{{category}}_{{pagination['cur_page']+1}}">&raquo;</a></li>
+                                    {% endif %}
+                                </ul>
+
+                        </div>
+                        <!-- AspNetPager V7.0.2 for VS2005 & VS2008 End -->
+
+
+
+                            </div>
+                            <!-- AspNetPager V7.0.2 for VS2005 & VS2008 End --> 
+                
+                    </div>
+                    
+                          
+                </div>
+
+             </div>
+
+         </div>
+
+        </div>
+
+        <div>
+
+            <div id="footer">
+              <div class="wrapper">
+                <ul class="footer-ul">
+                  <li>
+                    <h2>帮助</h2>
+                    <ul class="subnav-link">
+
+                    </ul>
+                  </li>
+                  <li>
+                    <h2>相关链接</h2>
+                    <ul class="subnav-link">
+                    </ul>
+                  </li>
+                </ul>
+                <div class="copyright">
+                  <ul>
+
+                    <li>承办：四川大学计算机学院</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+        </div>
+    </form>
+
+
+    <script src="static/script/purl.js"></script>
+     <script>
+            function Search() {
+                var txt = $(".input-area").val();
+                if (txt == "搜索回复汇总") {
+                    return;
+                }
+                if (txt.length > 20) {
+                    alert('输入不可超出20字长度！');
+                };
+                txt = encodeURI(txt);               
+                var type = $.url().param('Type');
+                if (type == null || type == '') {
+                    location.href = "ReplyList.aspx?Title=" + txt;
+                }
+                else {
+                    location.href = "ReplyList.aspx?Type=" + type + "&Title=" + txt;
+                }
+                
+            }
+
+            $(document).ready(function () {
+                var type = $.url().param('Type');
+                //if (type == null) {
+                //    type = 'A';
+                //}
+                type = '#Type' + type;
+                $(type).addClass("current");
+            });
+    </script>
+
+
+<script src="static/script/jquery.pageslide.js"></script><div id="pageslide" style="display: none;"></div>
+<script>
+    $(".slider").pageslide({ direction: "left", modal: "true" });
+</script>
+<script type="text/javascript" src="static/script/jquery.number.js"></script>
+
+
+</body>
+
+</html>

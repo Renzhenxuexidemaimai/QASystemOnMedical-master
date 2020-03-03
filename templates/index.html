@@ -1,0 +1,334 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>医药智能问答系统</title>
+    <script type="text/javascript" src="static/script/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="static/script/index.js"></script>
+    <script type="text/javascript" src="static/script/jquery.confirm.js"></script>
+    <script type="text/javascript" src="static/script/jquery.nicescroll.min.js"></script>
+    <script src="static/script/jquery-scrolltofixed.js"></script>
+    <link href="static/css/reset.css" rel="stylesheet" type="text/css">
+    <link href="static/css/main.css" rel="stylesheet" type="text/css">
+
+    <script>
+        $(document).ready(
+          function () {
+              $("#col-r").niceScroll({
+                  cursorwidth: "10px",
+                  horizrailenabled: false
+              });
+          }
+      );
+    </script>
+    
+    
+</head>
+
+
+<body>
+    
+    <form method="post" action="index" id="form2">
+        
+        
+        
+        
+        <div id="header">
+            
+
+
+
+            <div class="main-nav" >
+                <ul >
+                    <li class="current" style="text-align: center;"><a href="index" class="current">首页</a></li>
+                    <li class="nav-reply" style="text-align: center;"><a href="Reply">回复汇总</a></li>
+                </ul>
+            </div>
+
+
+            <div style="display: none">
+                <input type="submit" name="ctl00$Top$LogOut" value="Button" id="Top_LogOut">
+            </div>
+
+        </div>
+
+        <div>
+            <div id="col-l">
+              <div class="col-l-t">
+                <div class="content">
+                  <div class="bubble" id="Chat">
+                    <div class="msg clearfix">
+                      <div class="user-assistant"> </div>
+                      <span class="triangle"></span>
+                      <div class="article"> 
+                        <p>您好，我是小博。</p><p>欢迎使用小博智能医药问答系统。您可以在这里咨询疾病和症状等相关的问题</p>
+                        
+                      </div>
+                    </div>
+                   </div>
+                </div>
+              </div>
+              <div class="col-l-b">
+                <div class="faq-input-content">
+                  <textarea name="textfield" class="input" id="faqInput" placeholder="请提出问题" autocomplete="off" onkeydown="checkEnter(event)"></textarea>
+                  <input type="button" class="btn" value="发送" onclick="ChatSendClient()">
+                  <div class="input-count"><span id="textCount"></span></div>
+
+                </div>
+              </div>
+            </div>
+
+            <div id="col-r" tabindex="0" style="overflow-y: hidden; outline: none;">
+                  <div class="container">
+                    <div class="title">
+                      <div class="text">问题回复汇总</div>
+                      <div class="act"><a href="Reply">更多</a></div>
+                    </div>
+                    <ul class="reply-main">
+                        {% for record in records %}
+                            <li>
+                                 <a href="ReplyDetail_{{record['_id']}}"><h2 style="white-space:pre-line";>{{record['question']}}</h2><h3>{{record['answer'][:40]}}...</h3></a>
+                             </li>
+                        {% endfor %}
+                    </ul>
+                  </div>
+            </div>
+
+        </div>
+
+        
+    </form>
+
+
+    <script type="text/javascript">
+        function checkEnter(e) {
+            var et = e || window.event;
+            var keycode = et.charCode || et.keyCode;
+            if (keycode == 13) {
+                if (window.event)
+                    window.event.returnValue = false;
+                else
+                    e.preventDefault(); //for firefox
+            }
+
+        }
+
+        var flay = 1;
+
+        function timedMsg() {
+            var t = setTimeout("flay=1;", 5000)
+        }
+
+        $(document).ready(function() {
+            //focusblur
+            jQuery.focusblur = function(focusid) {
+                var focusblurid = $(focusid);
+                var defval = focusblurid.val();
+                focusblurid.focus(function() {
+                    var thisval = $(this).val();
+                    if (thisval == defval) {
+                        $(this).val("");
+                    }
+                });
+                focusblurid.blur(function() {
+                    var thisval = $(this).val();
+                    if (thisval == "") {
+                        $(this).val(defval);
+                    }
+                });
+
+            };
+            /*下面是调用方法*/
+            $.focusblur("#faqInput");
+
+            //生成关键字树
+            $.ajax({
+                url: 'http://113.108.219.40/QA/WebService/AIAssistant.svc/GetAllWordKey',
+                type: 'post',
+                async: false, //使用同步的方式,true为异步方式
+                //data: { 'act': 'addvideo', 'videoname': videoname },//这里使用json对象
+                success: function(data) {
+                    //code here...
+                    if (data != null && data.d != null) {
+                        //var allwordkey = data.d;
+                        tblRoot = makeTree(data.d);
+                    }
+                },
+                fail: function() {
+                    //code here...
+                    alert("失败");
+                }
+            });
+        });
+
+        var tblRoot; //关键字树
+
+        function ChatSendClient() {
+
+            var s = document.getElementById('faqInput');
+            var str = s.value;
+            if (s.value == "") {
+                return;
+            }
+            ClientChat(str);
+            if (flay != 1) {
+                AssistantChat("您提问的速度太快，请慢些！");
+                return;
+            }
+            flay = 0;
+            timedMsg();
+
+            //ClientChat(str);
+            s.value = "";
+            AssistantChat("马上为您查找，请稍候.....");
+            SearchByKey(str);
+            // var keys = search(str, tblRoot);
+            //
+            // if (keys && keys.length > 0) {
+            //     SearchByKey();
+            // }
+            // else if (str.length < 20) {
+            //     SearchByLike(str);
+            // }
+            // else {
+            //     NotAnswer();
+            // }
+        }
+
+        function SearchByKey(s) {
+            $.ajax({
+                url: 'http://127.0.0.1:5000/index/'+s,
+                type: 'post',
+                //async: false,//使用同步的方式,true为异步方式
+                 //这里使用json对象
+                contentType: "application/json; charset=utf-8",
+                dataType: 'json',
+                success: function(data) {
+                    console.log('success');
+                    if(data['answer'] != ""){AssistantChat(data['answer']);}
+                    if(data['answer1'] != ""){AssistantChat(data['answer1']);}
+
+                },
+                fail: function() {
+                    //code here...
+                    alert("网络连接失败");
+                }
+            });
+        }
+
+        function SearchByLike(word) {
+            $.ajax({
+                url: 'http://113.108.219.40/QA/WebService/AIAssistant.svc/GetAnswerByLike',
+                type: 'post',
+                //async: false,//使用同步的方式,true为异步方式
+                data: '{ "contxt":"' + word + '" }', //这里使用json对象
+                contentType: "application/json; charset=utf-8",
+                dataType: 'json',
+                success: function(data) {
+                    //code here...
+                    var str = eval("(" + data.d + ")");
+                    if (str.success) {
+                        AnswerJson(str);
+                    }
+                    else {
+                        NotAnswer();
+                    }
+                },
+                fail: function() {
+                    //code here...
+                    alert("网络连接失败");
+                }
+            });
+        }
+
+        function SearchByHot() {
+            $.ajax({
+                url: 'http://113.108.219.40/QA/WebService/AIAssistant.svc/GetAnswerByHot',
+                type: 'post',
+                //async: false,//使用同步的方式,true为异步方式
+                //data: { 'key': key },//这里使用json对象
+                success: function(data) {
+                    //code here...
+                    var str = eval("(" + data.d + ")");
+                    if (str.success) {
+                        AnswerJson2(str);
+                    }
+                    else {
+                    }
+                },
+                fail: function() {
+                    //code here...
+                    alert("网络连接失败");
+                }
+            });
+        }
+
+        function AnswerJson(obj) {
+            var Answer = '为您找到以下结果：<br>';
+            for (var i = 0; i < obj.datas.length; i++) {
+                Answer += '<li><a class=\"slider\" href="QaDetail.aspx?ID=' + obj.datas[i].SEQ + '">' + (i + 1) + '.  ' + obj.datas[i].AI_TITLE + '</a></li>';
+            }
+            Answer += '注：若仍不能解决您的问题，请<a class="slider" href="LoginCA.aspx">登录</a>使用人工服务！';
+            AssistantChat(Answer);
+        }
+
+        function AnswerJson2(obj) {
+            var Answer = '为您推荐：<br>';
+            for (var i = 0; i < obj.datas.length; i++) {
+                Answer += '<li><a class=\"slider\" href="QaDetail.aspx?ID=' + obj.datas[i].SEQ + '">' + (i + 1) + '.  ' + obj.datas[i].AI_TITLE + '</a></li>';
+            }
+            Answer += '<br>注：若仍不能解决您的问题，请<a class="slider" href="LoginCA.aspx">登录</a>使用人工服务！';
+            AssistantChat(Answer);
+        }
+
+        function NotAnswer() {
+            AssistantChat('十分抱歉，没有找到相关内容！');
+            SearchByHot();
+        }
+
+
+
+        function ClientChat(str) {
+            var el = document.getElementById('Chat');
+            el.innerHTML += "<div class='msg fr'><span class='triangle right'></span><div class='article'><xmp>" + str + "</xmp></div></div>";
+            $('.col-l-t').animate({ scrollTop: document.getElementById('Chat').scrollHeight + 'px' });
+        }
+        function AssistantChat(str) {
+            var el = document.getElementById('Chat');
+            el.innerHTML += "<div class='msg clearfix' style=\"white-space:pre-line\";><div class='user-assistant'></div><span class='triangle right'></span><div class='article' style=\"white-space:pre-line\";>" + str + "</div></div>";
+            $(".slider").pageslide({ direction: "left" });
+        }
+
+        document.onkeydown = function(event) {
+            var e = event || window.event || arguments.callee.caller.arguments[0];
+            if (e && e.keyCode == 13) { // enter 键
+                e.preventDefault();
+                ChatSendClient();
+            }
+        };
+    </script>
+    <script src="static/script/jquery.input.count.js"></script><!--限制输入字数-->
+    <script src="static/script/SearchKey.js"></script>
+
+
+
+<script src="static/script/jquery.pageslide.js"></script>
+
+<div id="pageslide" style="display: none;"></div>
+<script>
+    $(".slider").pageslide({ direction: "left", modal: "true" });
+</script>
+<script type="text/javascript" src="static/script/jquery.number.js"></script>
+
+
+<div id="ascrail2000" class="nicescroll-rails nicescroll-rails-vr" style="width: 12px; z-index: auto; cursor: default; position: absolute; top: 95px; left: 1428px; height: 326px; opacity: 0;">
+    <div class="nicescroll-cursors" style="position: relative; top: 0px; float: right; width: 10px; height: 132px; border: 1px solid rgb(255, 255, 255); border-radius: 5px; background-color: rgb(66, 66, 66); background-clip: padding-box;"></div>
+</div>
+
+
+
+</body>
+
+
+
+</html>

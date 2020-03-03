@@ -1,0 +1,56 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>智能医药系统</title>
+    <script type="text/javascript" src="static/script/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="static/script/jquery.nicescroll.min.js"></script>
+    <link href="static/css/reset.css" rel="stylesheet" type="text/css" />
+    <link href="static/css/qa-detail.css" rel="stylesheet" type="text/css" />
+    <script>
+        $(document).ready(
+          function() {
+              $("body").niceScroll({
+                  cursorwidth: "10px",
+                  horizrailenabled: false
+              });
+          }
+      );
+    </script>
+    
+    
+</head>
+
+
+<body style="margin-left: 0px;">
+
+    <form method="post" action="ReplyDetail.html?ID=335951" id="form1">
+        <div id="main">
+            <h1>{{result['question']}}</h1>
+            <ul class="sub-title">
+                <li>问题类别：{{result['question_type']}}</li>
+                <li>提问时间：{{result['time']}}</li>
+            </ul>
+            <div class="contain-q">{{result['question']}}</div>
+
+
+            <div class="title-answer"></div>
+            <div class="contain-a">{{result['answer']}}
+            </div>
+            <div class="tips">
+                以上回复内容，仅作为服务企业咨询的答复意见，不作为行政许可的依据。
+            </div>
+            <div class="author">回复人：小博智能医药系统</div>
+            
+        </div>
+        <div style="display: none">
+            <input type="submit" name="Button1" value="Button" id="Button1"><input type="submit" name="Button2" value="Button" id="Button2"><input type="submit" name="Button3" value="Button" id="Button3">
+        </div>
+
+    </form>
+
+
+</body>
+
+
+</html>
